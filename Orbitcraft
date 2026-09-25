@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>منصة أوربيت كرافت | OrbitCraft Space Engineering + S.A.G.E</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-panel: #111827;
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --secondary: #10b981;
+            --danger: #ef4444;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --ai-color: #8b5cf6; /* لون S.A.G.E البنفسجي الأصلي */
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', sans-serif; }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.05) 0%, transparent 50%);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        header {
+            text-align: center; padding: 40px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(to bottom, rgba(17,24,39,0.8), transparent);
+        }
+
+        h1 { font-size: 2.5rem; color: var(--primary); text-shadow: 0 0 15px var(--primary-glow); margin-bottom: 10px; }
+        h1 span { font-family: 'Orbitron', sans-serif; color: var(--text-main); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 40px; }
+        @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+
+        .panel {
+            background: var(--bg-panel); border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative;
+        }
+
+        .panel::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .panel-title { font-size: 1.5rem; margin-bottom: 20px; color: #fff; display: flex; align-items: center; gap: 10px; }
+        
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
+        .input-group input {
+            width: 100%; padding: 10px; background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1); color: #fff; border-radius: 6px; outline: none; transition: all 0.3s;
+        }
+        .input-group input:focus { border-color: var(--primary); box-shadow: 0 0 10px var(--primary-glow); }
+
+        button {
+            background: var(--primary); color: #fff; border: none; padding: 12px 20px;
+            border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 1rem; width: 100%; transition: all 0.3s; margin-bottom: 10px;
+        }
+        button:hover { background: #2563eb; box-shadow: 0 0 15px var(--primary-glow); }
+        
+        /* زر S.A.G.E للتحكم الذاتي */
+        .btn-ai { background: var(--ai-color); font-size: 0.9rem; }
+        .btn-ai:hover { background: #7c3aed; box-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
+
+        .result-box {
+            margin-top: 10px; padding: 15px; background: rgba(0,0,0,0.4); border-radius: 6px;
+            border-right: 4px solid var(--secondary); font-family: 'Orbitron', sans-serif; direction: ltr; text-align: left;
+        }
+
+        /* --- تصميم نافذة الذكاء الاصطناعي (نفس التصميم الأول تماماً) --- */
+        .ai-chat-widget {
+            position: fixed; bottom: 20px; left: 20px; width: 350px;
+            background: rgba(17, 24, 39, 0.95); border: 1px solid var(--ai-color);
+            border-radius: 12px; box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            display: flex; flex-direction: column; z-index: 1000; backdrop-filter: blur(10px); transition: transform 0.3s ease;
+        }
+        .ai-chat-widget.minimized { transform: translateY(calc(100% - 50px)); }
+
+        .ai-header {
+            background: rgba(139, 92, 246, 0.2); padding: 12px 15px;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.3); border-radius: 12px 12px 0 0;
+            display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .ai-header-title { color: #fff; font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .ai-header-title::before {
+            content: ''; display: inline-block; width: 10px; height: 10px; background: var(--ai-color);
+            border-radius: 50%; box-shadow: 0 0 8px var(--ai-color); animation: pulse 2s infinite;
+        }
+
+        /* شريط الحالة المضاف حديثاً بداخل النافذة */
+        .core-vitals { display: flex; justify-content: space-around; background: #000; padding: 8px; font-family: 'Orbitron', sans-serif; font-size: 0.75rem; border-bottom: 1px dashed rgba(139, 92, 246, 0.3); direction: ltr; }
+        .vital { color: var(--text-muted); }
+        .vital span { color: var(--secondary); font-weight: bold; }
+        .vital.danger span { color: var(--danger); animation: blink 1s infinite; }
+
+        .ai-messages { height: 300px; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 8px; font-size: 0.9rem; line-height: 1.5; }
+        .msg.ai { background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.3); color: #e2e8f0; align-self: flex-start; border-top-right-radius: 0; }
+        .msg.user { background: rgba(59, 130, 246, 0.2); border: 1px solid rgba(59, 130, 246, 0.3); color: #fff; align-self: flex-end; border-top-left-radius: 0; }
+
+        .ai-input-area { padding: 15px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px; }
+        .ai-input-area input { flex: 1; padding: 10px; background: rgba(0,0,0,0.5); border: 1px solid rgba(139, 92, 246, 0.4); border-radius: 6px; color: #fff; outline: none; }
+        .ai-input-area button { width: auto; background: var(--ai-color); padding: 10px 15px; margin-bottom: 0; }
+        .ai-input-area button:hover { background: #7c3aed; }
+        
+        .typing-indicator { display: none; font-size: 0.8rem; color: var(--ai-color); margin-bottom: 10px; font-style: italic; padding: 0 15px; }
+
+        @keyframes pulse { 0% { transform: scale(0.95); opacity: 0.5; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.5; } }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.5); border-radius: 3px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>أوربيت كرافت <span>OrbitCraft</span></h1>
+        <p style="color: var(--text-muted);">المنصة الهندسية لتعليم تصميم الأقمار الصناعية (مزودة بنظام S.A.G.E للإدارة الذاتية)</p>
+    </header>
+
+    <div class="container">
+        
+        <div class="grid-2">
+            <!-- Link Budget Calculator -->
+            <div class="panel">
+                <h2 class="panel-title">📡 ميزانية الاتصال (Link Budget)</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px; color: var(--text-muted);">قم بضبط طاقة الإرسال والتردد لضمان اتصالي بمحطة النجف.</p>
+                
+                <div class="input-group">
+                    <label>طاقة الإرسال للقمر (Tx Power) بالواط:</label>
+                    <input type="number" id="txPower" value="2" step="0.5">
+                </div>
+                <div class="input-group">
+                    <label>تردد الاتصال (Frequency) بالميغاهرتز (MHz):</label>
+                    <input type="number" id="freq" value="435">
+                </div>
+                <div class="input-group">
+                    <label>المسافة (الارتفاع) بالكيلومتر (km):</label>
+                    <input type="number" id="distance" value="500">
+                </div>
+                
+                <button onclick="calculateLink()">إجراء الحسابات يدوياً</button>
+                <button class="btn-ai" onclick="autoTuneLink()">✨ تفويض S.A.G.E للضبط التلقائي</button>
+                
+                <div class="result-box" id="linkResult">
+                    // Results will appear here...
+                </div>
+            </div>
+
+            <!-- Orbital Mechanics Calculator -->
+            <div class="panel">
+                <h2 class="panel-title">🌍 الميكانيكا المدارية (Orbital)</h2>
+                <p style="font-size: 0.9rem; margin-bottom: 15px; color: var(--text-muted);">حدد الارتفاع المداري وسأحسب سرعتي وزمني الدوري.</p>
+                
+                <div class="input-group">
+                    <label>ارتفاع القمر عن سطح الأرض (km):</label>
+                    <input type="number" id="altitude" value="400">
+                </div>
+                
+                <button onclick="calculateOrbit()">حساب المعلمات يدوياً</button>
+                <button class="btn-ai" onclick="autoTuneOrbit()">✨ تفويض S.A.G.E لضبط المدار</button>
+                
+                <div class="result-box" id="orbitResult" style="border-color: var(--primary);">
+                    // Results will appear here...
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- AI Chatbot Widget -->
+    <div class="ai-chat-widget" id="aiWidget">
+        <div class="ai-header" onclick="toggleAI()">
+            <div class="ai-header-title">المستشار الذكي (S.A.G.E)</div>
+            <div style="color: #fff;">▼</div>
+        </div>
+        <div class="core-vitals">
+            <div class="vital" id="vital-temp">TEMP: <span>38°C</span></div>
+            <div class="vital" id="vital-power">PWR: <span>12W</span></div>
+            <div class="vital" id="vital-status">SYS: <span>NOMINAL</span></div>
+        </div>
+        <div class="ai-messages" id="aiMessages">
+            <div class="msg ai">أهلاً بك أيها المهندس. أنا S.A.G.E، عقل المركبة. أنظمتي الحيوية مستقرة. يمكنك حساب الأرقام بنفسك وسأراقبك، أو يمكنك تفويضي (عبر الأزرار البنفسجية) لأقوم أنا بضبط الأرقام المثالية للمهمة.</div>
+        </div>
+        <div class="typing-indicator" id="aiTyping">S.A.G.E يحلل البيانات...</div>
+        <div class="ai-input-area">
+            <input type="text" id="aiInput" placeholder="اكتب استفسارك هنا..." onkeypress="handleEnter(event)">
+            <button onclick="sendUserMessage()">إرسال</button>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const aiMessages = document.getElementById('aiMessages');
+        const aiTyping = document.getElementById('aiTyping');
+        const aiWidget = document.getElementById('aiWidget');
+        const vitalTemp = document.getElementById('vital-temp');
+        const vitalPower = document.getElementById('vital-power');
+        const vitalStatus = document.getElementById('vital-status');
+        let isMinimized = false;
+
+        function toggleAI() {
+            isMinimized = !isMinimized;
+            if(isMinimized) aiWidget.classList.add('minimized');
+            else aiWidget.classList.remove('minimized');
+        }
+
+        function addMessage(sender, text) {
+            const div = document.createElement('div');
+            div.className = `msg ${sender}`;
+            div.innerText = text;
+            aiMessages.appendChild(div);
+            aiMessages.scrollTop = aiMessages.scrollHeight;
+        }
+
+        // --- Vitals Controller ---
+        function updateVitals(temp, power, statusState) {
+            vitalTemp.innerHTML = `TEMP: <span>${temp}°C</span>`;
+            vitalPower.innerHTML = `PWR: <span>${power}W</span>`;
+            vitalStatus.innerHTML = `SYS: <span>${statusState}</span>`;
+            
+            if(temp > 50 || statusState !== 'NOMINAL') {
+                vitalTemp.classList.add('danger');
+                vitalStatus.classList.add('danger');
+            } else {
+                vitalTemp.classList.remove('danger');
+                vitalStatus.classList.remove('danger');
+            }
+        }
+
+        // --- Standard Calculators (Manual) ---
+        function calculateLink() {
+            const txPowerW = parseFloat(document.getElementById('txPower').value);
+            const freqMHz = parseFloat(document.getElementById('freq').value);
+            const distKm = parseFloat(document.getElementById('distance').value);
+            if(!txPowerW || !freqMHz || !distKm) return;
+
+            const txPowerdBm = 10 * Math.log10(txPowerW * 1000);
+            const fspl = (20 * Math.log10(distKm)) + (20 * Math.log10(freqMHz)) + 32.44;
+            const rxPower = txPowerdBm - fspl;
+            const margin = rxPower - (-110); 
+            
+            let status = margin >= 3 ? "<span style='color:#10b981'>[LINK ESTABLISHED]</span>" : "<span style='color:#ef4444'>[LINK FAILED]</span>";
+
+            document.getElementById('linkResult').innerHTML = `
+                Tx Power: ${txPowerdBm.toFixed(2)} dBm<br>
+                Path Loss: -${fspl.toFixed(2)} dB<br>
+                Rx Power: ${rxPower.toFixed(2)} dBm<br>
+                Link Margin: ${margin.toFixed(2)} dB<br>
+                Status: ${status}
+            `;
+
+            evaluateLinkByAI(txPowerW, margin);
+        }
+
+        function calculateOrbit() {
+            const altKm = parseFloat(document.getElementById('altitude').value);
+            if(!altKm) return;
+
+            const R_earth = 6371; 
+            const velocity_kms = Math.sqrt((6.67430e-11 * 5.972e24) / ((R_earth + altKm) * 1000)) / 1000;
+            const period_min = (2 * Math.PI * Math.sqrt(Math.pow((R_earth + altKm) * 1000, 3) / (6.67430e-11 * 5.972e24))) / 60;
+
+            document.getElementById('orbitResult').innerHTML = `
+                Orbit Radius: ${(R_earth + altKm).toLocaleString()} km<br>
+                Orbital Velocity: ${velocity_kms.toFixed(2)} km/s<br>
+                Orbital Period: ${period_min.toFixed(2)} Minutes
+            `;
+
+            evaluateOrbitByAI(altKm);
+        }
+
+        // --- S.A.G.E Overrides (Auto-Tune) ---
+        function autoTuneLink() {
+            if(isMinimized) toggleAI();
+            aiTyping.style.display = 'block';
+            addMessage('user', '[نظام التحكم]: تم تفعيل التفويض الذاتي للاتصال.');
+
+            // Animate changing the numbers
+            setTimeout(() => { document.getElementById('txPower').value = "4.5"; }, 500);
+            setTimeout(() => { document.getElementById('freq').value = "2400"; }, 1000);
+            setTimeout(() => { 
+                calculateLink(); 
+                addMessage('ai', 'لقد توليت القيادة. قمت بتغيير طاقة الإرسال إلى 4.5 واط، ورفعت التردد إلى نطاق S-band (2400 MHz). هذا التردد أفضل لنقل البيانات العلمية بسرعة لمحطتك في النجف، وهذا الواط يوازن بين قوة الإشارة وبين الحفاظ على حرارتي وبطاريتي.');
+                aiTyping.style.display = 'none';
+            }, 1500);
+        }
+
+        function autoTuneOrbit() {
+            if(isMinimized) toggleAI();
+            aiTyping.style.display = 'block';
+            addMessage('user', '[نظام التحكم]: تم تفعيل التفويض الذاتي للمدار.');
+
+            setTimeout(() => { document.getElementById('altitude').value = "550"; }, 800);
+            setTimeout(() => { 
+                calculateOrbit(); 
+                addMessage('ai', 'لقد قمت بضبط ارتفاعي إلى 550 كم (مدار متزامن مع الشمس). هذا المدار سيضمن أن ألواحي الشمسية تتعرض لأشعة الشمس باستمرار، ويقيني من خطر السقوط السريع نحو الأرض.');
+                aiTyping.style.display = 'none';
+            }, 1600);
+        }
+
+        // --- AI Evaluations (Watching User Inputs) ---
+        function evaluateLinkByAI(power, margin) {
+            if(isMinimized) toggleAI();
+            aiTyping.style.display = 'block';
+            
+            updateVitals(38 + (power * 1.5), 12 + power, 'NOMINAL');
+
+            setTimeout(() => {
+                let critique = "";
+                if(margin < 0) {
+                    critique = `محطتك لن تسمعني! إشارتي تتلاشى في الفضاء. يمكنك زيادة طاقة الإرسال الخاصة بي أو تفويضي لأقوم بضبطها.`;
+                    updateVitals(38, 12 + power, 'COMM_ERR');
+                } else if (power > 15) {
+                    critique = `تحذير! لقد وضعت طاقة إرسال عالية جداً (${power} واط). لاحظ شريط حالتي بالأعلى! حرارتي ترتفع بشكل خطير. أرجوك خفض الطاقة لتوفير عمر البطارية.`;
+                    updateVitals(68, 12 + power, 'OVERHEAT');
+                } else {
+                    critique = `تكوين مثالي للاتصال. أشعر باستقرار في أنظمة الإرسال، وإشارتي ستصل بوضوح لمحطتك الأرضية.`;
+                }
+                addMessage('ai', critique);
+                aiTyping.style.display = 'none';
+            }, 1200);
+        }
+
+        function evaluateOrbitByAI(alt) {
+            if(isMinimized) toggleAI();
+            aiTyping.style.display = 'block';
+
+            setTimeout(() => {
+                let critique = "";
+                if(alt < 250) {
+                    critique = `تنبيه هيكلي! أنت تضعني في مدار منخفض جداً. أستشعر احتكاكاً عنيفاً بالغلاف الجوي. هيكلي الخارجي سيحترق قريباً! يمكنك تفويضي لرفع المدار.`;
+                    updateVitals(85, 25, 'DRAG_WARN');
+                } else if (alt >= 400 && alt <= 800) {
+                    critique = `اختيار ممتاز. أنا الآن أطير بسرعة مستقرة في مدار أرضي منخفض ولا أواجه أي احتكاك.`;
+                    updateVitals(40, 15, 'NOMINAL');
+                } else {
+                    critique = `لقد أرسلتني بعيداً جداً. في هذا الارتفاع سأتعرض لإشعاعات شديدة وقد تتعطل معالجاتي (S.A.G.E Core).`;
+                    updateVitals(45, 18, 'RAD_WARN');
+                }
+                addMessage('ai', critique);
+                aiTyping.style.display = 'none';
+            }, 1200);
+        }
+
+        // --- Chat Interaction ---
+        function handleEnter(e) { if(e.key === 'Enter') sendUserMessage(); }
+
+        function sendUserMessage() {
+            const input = document.getElementById('aiInput');
+            const text = input.value.trim();
+            if(!text) return;
+
+            addMessage('user', text);
+            input.value = '';
+            aiTyping.style.display = 'block';
+            
+            setTimeout(() => {
+                processAIResponse(text);
+                aiTyping.style.display = 'none';
+            }, 1000);
+        }
+
+        function processAIResponse(text) {
+            const msg = text.toLowerCase();
+            let response = "";
+
+            if(msg.includes('مرحبا') || msg.includes('سلام')) {
+                response = "مرحباً. أنظمتي الحيوية مستقرة وتنتظر إدخالك لمعلمات التصميم.";
+            } else if(msg.includes('كاميرا') || msg.includes('تصوير')) {
+                response = "معالجة الصور ستزيد من استهلاك وحدة المعالجة الخاصة بي وترفع حرارتي. تأكد من ضبط طاقة كافية.";
+            } else if(msg.includes('تفويض') || msg.includes('تدخل')) {
+                response = "يمكنك استخدام الأزرار البنفسجية في أي وقت لأتولى أنا قيادة الأنظمة وضبطها علمياً.";
+            } else {
+                response = "تم تسجيل الإدخال. جرب إدخال الأرقام في المحركات أعلاه لترى كيف سيتفاعل جسدي الآلي، أو اضغط زر التفويض لكي أتولى المهمة.";
+            }
+            addMessage('ai', response);
+        }
+    </script>
+</body>
+</html>
